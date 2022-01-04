@@ -5,6 +5,7 @@ Created on Tue Dec 14 10:20:49 2021
 
 @author: g.paulet-duprat
 """
+import tkinter as tk
 
 def creatGrille(hauteur,largeur): #largeur et hauteur sont des entiers
     grille=[]
@@ -26,6 +27,27 @@ def lireGrille(ligne,colonne,grille,etage):
     else:
         print("lecture hors grille")
     return valeur
+
+def printGrid(Grid):
+
+    for i in range(0,len(Grid)):
+
+        aff=""
+
+        for j in range(0,len(Grid[i])):
+
+            aff+=str(Grid[i][j])+" "
+
+        print(aff)
+
+def deplacement(dx,dy):
+    x=tk.IntVar()
+    y=tk.IntVar()
+
+
+
+
+
 
 #def destructionVaisseau(ligne,colonne):
     
