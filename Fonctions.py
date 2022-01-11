@@ -22,9 +22,10 @@ def creatEnemies(x,y,v2Photo,canvas):
     return v2item
     
 def automove(t1,t1item,canvas,window):
-    if t1.y<900:
+    if t1.y>50:
         t1.move(0,-10,t1item,canvas)
         window.after(10,automove,t1,t1item,canvas,window)
+    else: canvas.delete(t1item)
         
 
 
