@@ -6,45 +6,26 @@ Created on Tue Dec 14 10:20:49 2021
 @author: g.paulet-duprat
 """
 import tkinter as tk
+import Classe as cl
+from PIL import Image, ImageTk
 
-def creatGrille(hauteur,largeur): #largeur et hauteur sont des entiers
-    grille=[]
-    for indice in range(0,hauteur):
-        ligne = [[0,0,0]]*largeur
-        grille.append(ligne)
-    return grille # Retourne une liste de ligne
-
-def modifGrille(ligne,colonne,valeur,grille,etage): #ligne=int, colonne=int, valeur=int, grille=int
-    if len(grille)>= ligne and len(grille[ligne])>=colonne:
-        grille[ligne][colonne][etage]=valeur
-    else:
-        print("modification hors grille")
-
-def lireGrille(ligne,colonne,grille,etage):
-    valeur=-1
-    if len(grille)>= ligne and len(grille[ligne])>=colonne:
-        valeur=grille[ligne][colonne][etage]
-    else:
-        print("lecture hors grille")
-    return valeur
-
-def printGrid(Grid):
-
-    for i in range(0,len(Grid)):
-
-        aff=""
-
-        for j in range(0,len(Grid[i])):
-
-            aff+=str(Grid[i][j])+" "
-
-        print(aff)
-
-def deplacement(dx,dy):
-    x=tk.IntVar()
-    y=tk.IntVar()
-
-
+def creatTire(v1,t1Photo,canvas,window):
+    t1=cl.vaisseau(0,0,15,40,"images/piou.png")
+    t1.x=v1.x
+    t1.y=v1.y -60
+    t1item=canvas.create_image(t1.x,t1.y,image=t1Photo)
+    automove(t1,t1item,canvas,window)
+    
+def creatEnemies(x,y,v2Photo,canvas):
+    v2=cl.vaisseau(x,y,100,70,"images/piou.png")
+    v2item=canvas.create_image(x,y,image=v2Photo)
+    return v2item
+    
+def automove(t1,t1item,canvas,window):
+    if t1.y<900:
+        t1.move(0,-10,t1item,canvas)
+        window.after(10,automove,t1,t1item,canvas,window)
+        
 
 
 
