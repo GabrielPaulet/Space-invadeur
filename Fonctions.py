@@ -9,22 +9,31 @@ import tkinter as tk
 import Classe as cl
 from PIL import Image, ImageTk
 
-def creatTire(v1,t1Photo,canvas,window):
-    t1=cl.vaisseau(0,0,15,40,"images/piou.png")
+def creatTire(v1,t1Photo,canvas,window,vitesse):
+    if vitesse<0:
+        posy=-60
+    else:
+        posy=60
+    if v1.camp=="G":
+        t1=cl.vaisseau(0,0,15,40,"images/piou.png",1,"T")
+    else:
+        t1=cl.vaisseau(0,0,15,40,"images/piou2.png",1,"T")
     t1.x=v1.x
-    t1.y=v1.y -60
+    t1.y=v1.y +posy
     t1item=canvas.create_image(t1.x,t1.y,image=t1Photo)
-    automove(t1,t1item,canvas,window)
+    t1.addItem(t1item)
+    automove(t1,t1item,canvas,window,vitesse)
     
 def creatEnemies(x,y,v2Photo,canvas):
-    v2=cl.vaisseau(x,y,100,70,"images/piou.png")
+    v2=cl.vaisseau(x,y,100,70,"images/piou.png",1,"M")
     v2item=canvas.create_image(x,y,image=v2Photo)
-    return v2item
+    v2.addItem(v2item)
+    return v2
     
-def automove(t1,t1item,canvas,window):
-    if t1.y>50:
-        t1.move(0,-10,t1item,canvas)
-        window.after(10,automove,t1,t1item,canvas,window)
+def automove(t1,t1item,canvas,window,vitesse):
+    if t1.y>50 and t1.y<950:
+        t1.move(0,vitesse,canvas)
+        window.after(10,automove,t1,t1item,canvas,window,vitesse)
     else: canvas.delete(t1item)
         
 
