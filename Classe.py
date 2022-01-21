@@ -103,16 +103,13 @@ class jeu():
         self.root.after(20, self._animatemove)
         
     def _animatetire(self):
-        if self.pressed["a"]: self.tiresG.append(self.creatTire(self.v1))
-        ran=r.randint(0,100)
-        if ran<=5 and r!=0:
-            nbEnnemie=len(self.allEnemmies.enemyListe)
-            for ennemie in self.allEnemmies.enemyListe:
-                chance=r.randint(0,nbEnnemie)
-                if chance<=ran and ennemie.y<950 and ennemie.y>140:
-                    self.tiresM.append(self.creatTire(ennemie))
-                    ran=ran-1
-                nbEnnemie=nbEnnemie-1
+        if self.pressed["a"]: 
+            self.tiresG.append(self.creatTire(self.v1))
+        
+        for ennemie in self.allEnemmies.enemyListe:
+            chance=r.randint(0,100)
+            if chance<=10 and ennemie.y<950 and ennemie.y>140:
+                self.tiresM.append(self.creatTire(ennemie))
         self.root.after(200, self._animatetire)
         
     def _pressed(self, event):
@@ -143,11 +140,11 @@ class jeu():
         
     def creatTire(self,v):
         if v.camp=="G":
-            vitesse=-10
+            vitesse=-20
             t1=cl.vaisseau(0,0,15,40,"images/piou.png",1,"G")
             imagePiou=self.t1Photo
         else:
-            vitesse=10
+            vitesse=20
             t1=cl.vaisseau(0,0,15,40,"images/piou2.png",1,"M")
             imagePiou=self.t2Photo
         if vitesse<0:
@@ -187,7 +184,7 @@ class jeu():
                     
         for tire in self.tiresM:
             colli2=self.collision(self.v1.item,tire.item)
-            if colli:
+            if colli2:
                 self.suprTire(tire)
         self.root.after(20, self.boom)
                     
@@ -262,10 +259,8 @@ class Allenemy():
             for i in range(0,len(self.enemyListe)):
                 if self.enemyListe[i].y>maxy:
                     maxy=self.enemyListe[i].y
-            posyenemymax = maxy + 50
-
+            posyenemymax = maxy + 80
             self.descente(posyenemymax,canvas,root)
-
             if self.deplacement[0] == 'D':
                 self.deplacement[1] = 'G'
             elif self.deplacement[0] == 'G':
@@ -278,6 +273,8 @@ class Allenemy():
         for i in range(0,len(self.enemyListe)):
             if self.enemyListe[i].y>maxy:
                 maxy=self.enemyListe[i].y
+        if posyenemymax>maxy+100:
+            posyenemymax=maxy+100
         if maxy <=880:
             if maxy <= posyenemymax:
                 for i in range(0,len(self.enemyListe)):
@@ -287,9 +284,15 @@ class Allenemy():
     def spawnEnemy(self,canvas):
         if self.level==[]:
             self.level=f.OuvrirFichier("enemy.txt")
+        if self.deplacement[0] == 'D':
+            value = 600
+        elif self.deplacement[0] == 'G':
+            value = 85
+        elif self.deplacement[0] == 'B':
+                value = 100
         for i in range (0,len(self.level[0])):
             if self.level[0][i] == '1' :
-                v2=f.creatEnemies(50+150*i,-20,self.v2Photo,canvas)
+                v2=f.creatEnemies(value +150*i,-30,self.v2Photo,canvas)
                 self.add(v2)
         self.level.pop(0)
             
