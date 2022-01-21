@@ -14,11 +14,13 @@ class jeu():
     def __init__(self):
         self.pressed={}
         self.tiresG=[]
+        self.tiresM=[]
         self.creatInterface()
         
     def start(self):
         self._animatemove()
         self._animatetire()
+        self.boom()
         self.root.mainloop()
         
     def creatInterface(self):
@@ -97,20 +99,21 @@ class jeu():
         if self.pressed["q"]: self.v1.move(-15,0,self.canvas)
         if self.pressed["d"]: self.v1.move(15,0,self.canvas)
         
+        
         self.root.after(20, self._animatemove)
         
     def _animatetire(self):
-        if self.pressed["a"]: f.creatTire(self.v1,self.t1Photo,self.canvas,self.root,-10)
-        ran=r.randint(0,200)
+        if self.pressed["a"]: self.tiresG.append(self.creatTire(self.v1))
+        ran=r.randint(0,100)
         if ran<=5 and r!=0:
             nbEnnemie=len(self.allEnemmies.enemyListe)
             for ennemie in self.allEnemmies.enemyListe:
                 chance=r.randint(0,nbEnnemie)
-                if chance<=ran:
-                    f.creatTire(ennemie,self.t2Photo,self.canvas,self.root,10)
+                if chance<=ran and ennemie.y<950 and ennemie.y>140:
+                    self.tiresM.append(self.creatTire(ennemie))
                     ran=ran-1
                 nbEnnemie=nbEnnemie-1
-        self.root.after(100, self._animatetire)
+        self.root.after(200, self._animatetire)
         
     def _pressed(self, event):
         self.pressed[event.char] = True
@@ -119,24 +122,75 @@ class jeu():
         self.pressed[event.char] = False
         
     def collision(self,entite1, entite2):
+        if self.canvas.bbox(entite1) != None and self.canvas.bbox(entite2) != None:
 
-        #On récupère les coordonées de l'objet 1
-        x_1 = self.canvas.bbox(entite1)[0] 
-        x_2 = self.canvas.bbox(entite1)[2] 
-        y_1 = self.canvas.bbox(entite1)[1] 
-        y_2 = self.canvas.bbox(entite1)[3] 
-
-
-        # les coordonnées de la deuxième entité
-        coords = self.canvas.bbox(entite2)
-
-        #On vérifie s'i y a une collison par la gauche de l'entité 1 sur l'entité 2
-        if (x_2 > coords[0]> x_1) and (y_1 < coords[1]< y_2):
-            return True
-
-        #On vérifie s'i y a une collison par la droite de l'entité 1 sur l'entité 2
-        elif (x_2 > coords[2]> x_1) and (y_1 < coords[3]< y_2):
-            return True
+            #On récupère les coordonées de l'objet 1
+            x_1 = self.canvas.bbox(entite1)[0] 
+            x_2 = self.canvas.bbox(entite1)[2] 
+            y_1 = self.canvas.bbox(entite1)[1] 
+            y_2 = self.canvas.bbox(entite1)[3] 
+    
+            # les coordonnées de la deuxième entité
+            coords = self.canvas.bbox(entite2)
+    
+            #On vérifie s'i y a une collison par la gauche de l'entité 2 sur l'entité 1
+            if (x_2 > coords[0]> x_1) and (y_1 < coords[1]< y_2):
+                return True
+    
+            #On vérifie s'i y a une collison par la droite de l'entité 2 sur l'entité 1
+            elif (x_2 > coords[2]> x_1) and (y_1 < coords[3]< y_2):
+                return True
+        
+    def creatTire(self,v):
+        if v.camp=="G":
+            vitesse=-10
+            t1=cl.vaisseau(0,0,15,40,"images/piou.png",1,"G")
+            imagePiou=self.t1Photo
+        else:
+            vitesse=10
+            t1=cl.vaisseau(0,0,15,40,"images/piou2.png",1,"M")
+            imagePiou=self.t2Photo
+        if vitesse<0:
+            posy=-60
+        else:
+            posy=60
+        t1.x=v.x
+        t1.y=v.y +posy
+        t1item=self.canvas.create_image(t1.x,t1.y,image=imagePiou)
+        t1.addItem(t1item)
+        self.automove(vitesse,t1)
+        return t1
+        
+    def automove(self,vitesse,t1):
+        if t1.y>50 and t1.y<950:
+            t1.move(0,vitesse,self.canvas)
+            self.root.after(10,self.automove,vitesse,t1)
+        elif t1 in self.tiresG or t1 in self.tiresM:
+            self.suprTire(t1)
+        
+    def suprTire(self,t1):
+        if t1.camp=="G":
+            self.tiresG.remove(t1)
+            self.canvas.delete(t1.item)
+        else:
+            self.tiresM.remove(t1)
+            self.canvas.delete(t1.item)
+    
+    def boom(self):
+        for tire in self.tiresG:
+            for enemy in self.allEnemmies.enemyListe:
+                colli=self.collision(enemy.item, tire.item)
+                if colli:
+                    self.suprTire(tire)
+                    self.allEnemmies.removeEnemy(enemy)
+                    self.canvas.delete(enemy.item)
+                    
+        for tire in self.tiresM:
+            colli2=self.collision(self.v1.item,tire.item)
+            if colli:
+                self.suprTire(tire)
+        self.root.after(20, self.boom)
+                    
     
 
 class vaisseau():
@@ -162,7 +216,6 @@ class vaisseau():
     def addItem(self,item):
         self.item=item
         
-        
 class Allenemy():
     def __init__(self,V2Photo):
         self.level=f.OuvrirFichier("enemy.txt")
@@ -173,9 +226,8 @@ class Allenemy():
     def add(self,enemy):
         self.enemyListe.append(enemy)
     
-    def remove (self,enemy):
-        i=self.enemyListe.index(enemy)
-        self.enemyListe.pop(i)
+    def removeEnemy (self,enemy):
+        self.enemyListe.remove(enemy)
     
     def move(self,canvas,root):
         dx=15
@@ -237,7 +289,7 @@ class Allenemy():
             self.level=f.OuvrirFichier("enemy.txt")
         for i in range (0,len(self.level[0])):
             if self.level[0][i] == '1' :
-                v2=f.creatEnemies(50+200*i,-20,self.v2Photo,canvas)
+                v2=f.creatEnemies(50+150*i,-20,self.v2Photo,canvas)
                 self.add(v2)
         self.level.pop(0)
             

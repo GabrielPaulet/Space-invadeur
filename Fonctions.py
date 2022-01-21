@@ -25,7 +25,7 @@ def creatTire(v1,t1Photo,canvas,window,vitesse):
     automove(t1,t1item,canvas,window,vitesse)
     
 def creatEnemies(x,y,v2Photo,canvas):
-    v2=cl.vaisseau(x,y,100,70,"images/piou.png",1,"M")
+    v2=cl.vaisseau(x,y,100,70,"vaisseau2.png",1,"M")
     v2item=canvas.create_image(x,y,image=v2Photo)
     v2.addItem(v2item)
     return v2
