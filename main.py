@@ -12,4 +12,3 @@ from PIL import Image, ImageTk
 
 jeu=cl.jeu()
 jeu.start()
-

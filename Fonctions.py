@@ -35,6 +35,15 @@ def automove(t1,t1item,canvas,window,vitesse):
         t1.move(0,vitesse,canvas)
         window.after(10,automove,t1,t1item,canvas,window,vitesse)
     else: canvas.delete(t1item)
+    
+def OuvrirFichier(nom,car='/'):
+    monFichier=open(nom, encoding='utf-8')
+    Fichier=monFichier.readlines()
+    monFichier.close()
+    for i in range(len(Fichier)):
+        a=Fichier[i].split(car)
+        Fichier[i]=a[0:-1]
+    return Fichier
         
 
 

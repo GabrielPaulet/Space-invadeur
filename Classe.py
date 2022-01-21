@@ -13,6 +13,7 @@ from PIL import Image, ImageTk
 class jeu():
     def __init__(self):
         self.pressed={}
+        self.tiresG=[]
         self.creatInterface()
         
     def start(self):
@@ -73,12 +74,7 @@ class jeu():
         self.backitem=self.canvas.create_image(800,470,image=self.backPhoto)
         v1item=self.canvas.create_image(self.v1.x,self.v1.y,image=self.v1Photo)
         self.v1.addItem(v1item)
-        self.allEnemmies=Allenemy()
-        for i in range(0,6):
-            v2=f.creatEnemies(50+200*i,50,self.v2Photo,self.canvas)
-            v3=f.creatEnemies(50+150*i,200,self.v2Photo,self.canvas)
-            self.allEnemmies.add(v2)
-            self.allEnemmies.add(v3)
+        self.allEnemmies=Allenemy(self.v2Photo)
         self.canvas.pack()
         self.allEnemmies.move(self.canvas,self.root)
         self.setBindings()
@@ -116,12 +112,31 @@ class jeu():
                 nbEnnemie=nbEnnemie-1
         self.root.after(100, self._animatetire)
         
-        
     def _pressed(self, event):
         self.pressed[event.char] = True
 
     def _released(self, event):
         self.pressed[event.char] = False
+        
+    def collision(self,entite1, entite2):
+
+        #On récupère les coordonées de l'objet 1
+        x_1 = self.canvas.bbox(entite1)[0] 
+        x_2 = self.canvas.bbox(entite1)[2] 
+        y_1 = self.canvas.bbox(entite1)[1] 
+        y_2 = self.canvas.bbox(entite1)[3] 
+
+
+        # les coordonnées de la deuxième entité
+        coords = self.canvas.bbox(entite2)
+
+        #On vérifie s'i y a une collison par la gauche de l'entité 1 sur l'entité 2
+        if (x_2 > coords[0]> x_1) and (y_1 < coords[1]< y_2):
+            return True
+
+        #On vérifie s'i y a une collison par la droite de l'entité 1 sur l'entité 2
+        elif (x_2 > coords[2]> x_1) and (y_1 < coords[3]< y_2):
+            return True
     
 
 class vaisseau():
@@ -149,9 +164,11 @@ class vaisseau():
         
         
 class Allenemy():
-    def __init__(self):
+    def __init__(self,V2Photo):
+        self.level=f.OuvrirFichier("enemy.txt")
         self.enemyListe=[]
         self.deplacement=['B','D']
+        self.v2Photo=V2Photo
 
     def add(self,enemy):
         self.enemyListe.append(enemy)
@@ -162,6 +179,8 @@ class Allenemy():
     
     def move(self,canvas,root):
         dx=15
+        if self.enemyListe ==[]:
+            self.spawnEnemy(canvas)
         if self.deplacement[1]=='D':
             maxx=0
             for i in range(0,len(self.enemyListe)):
@@ -186,6 +205,7 @@ class Allenemy():
                 self.deplacement[0] =self.deplacement[1]
                 self.deplacement[1] ='B'
         elif self.deplacement[1] =='B':
+            self.spawnEnemy(canvas)
             maxy=0
             for i in range(0,len(self.enemyListe)):
                 if self.enemyListe[i].y>maxy:
@@ -211,6 +231,15 @@ class Allenemy():
                 for i in range(0,len(self.enemyListe)):
                     self.enemyListe[i].move(0,15,canvas)
                 root.after(20,self.descente,posyenemymax,canvas,root)
+    
+    def spawnEnemy(self,canvas):
+        if self.level==[]:
+            self.level=f.OuvrirFichier("enemy.txt")
+        for i in range (0,len(self.level[0])):
+            if self.level[0][i] == '1' :
+                v2=f.creatEnemies(50+200*i,-20,self.v2Photo,canvas)
+                self.add(v2)
+        self.level.pop(0)
             
         
 
