@@ -24,6 +24,7 @@ class jeu():
         self.tiresM=[]
         self.vie=3
         self.score=0
+        self.mort=0
         self.creatInterface()
         self.root.mainloop()
         
@@ -34,8 +35,13 @@ class jeu():
             - on bloque le bouton nouvelle partie
             - on crée les enemies, les ilots, les déplacement des objets sur le canvas
         """
-        if self.vie==0:
+        if self.mort==1:
             self.canvas.delete(self.yditem)
+        self.mort=0
+        self.canvas.delete(self.backitem)
+        self.backitem=self.canvas.create_image(800,470,image=self.backPhoto)
+        v1item=self.canvas.create_image(self.v1.x,self.v1.y,image=self.v1Photo)
+        self.v1.addItem(v1item)
         self.newGame['state'] = 'disabled'
         self.vie=3
         self.score=0
@@ -49,7 +55,7 @@ class jeu():
         
     def creatInterface(self):
         """
-        Initialisation de l'interface avec':
+        Initialisation de l'interface avec:
             - la fenêtre
             - les boutons et labels
             - le canvas
@@ -77,33 +83,38 @@ class jeu():
         self.vieLabel.configure(bg='black',fg='white',font=("Courier", 20))
         self.vieLabel.pack(side='right' ,padx=300,pady=30)
         
-        # Initialisation du canvas et des images
+        # Initialisation de l'image de fond
         backImg=Image.open("images/earth.jpeg")
         backimg=backImg.resize((1800, 1100))
         self.backPhoto=ImageTk.PhotoImage(backimg,master=self.cadreG)
         
-        #Initialisation des tires piou
+        # Initialisation de l'image de fond
+        backImg2=Image.open("images/brokenEarth.jpeg")
+        backimg2=backImg2.resize((1800, 1100))
+        self.backPhoto2=ImageTk.PhotoImage(backimg2,master=self.cadreG)
+        
+        #Initialisation de l'image des tires du joueur
         t1Image=Image.open("images/piou.png")
         t1img=t1Image.resize((15, 40))
         self.t1Photo=ImageTk.PhotoImage(t1img,master=self.cadreG)
         
-        #Initialisation des tires piou2
+        #Initialisation de l'image des tires des ennemies
         t2Image=Image.open("images/piou2.png")
         t2img=t2Image.resize((15, 40))
         self.t2Photo=ImageTk.PhotoImage(t2img,master=self.cadreG)
         
-        #Initialisation des ennemies
+        #Initialisation de l'image des ennemies
         v2Image=Image.open("images/vaisseau2.png")
         v2img=v2Image.resize((100, 70))
         self.v2Photo=ImageTk.PhotoImage(v2img,master=self.cadreG)
         
-        #initialisation du vaisseau
+        #initialisation de l'image du vaisseau du joueur
         self.v1=cl.entity(850,940,100,70,"images/vaisseau1.png",3,'G')
         v1Image=Image.open(self.v1.image)
         v1img=v1Image.resize((self.v1.lenght, self.v1.height))
         self.v1Photo=ImageTk.PhotoImage(v1img,master=self.cadreG)
         
-        #Initialisation des Ilots
+        #Initialisation des images des Ilots (Liste d'images)
         self.IPhoto=[]
         for nb in [0,1,2,3]:
             nbString=str(nb)
@@ -111,7 +122,7 @@ class jeu():
             I1img=I1Image.resize((150, 200))
             self.IPhoto.append(ImageTk.PhotoImage(I1img,master=self.cadreG))
         
-        #Initialisation du YD
+        #Initialisation de l'écran de défaite.
         ydImage=Image.open("images/YD.png")
         ydimg=ydImage.resize((600,300))
         self.ydPhoto=ImageTk.PhotoImage(ydimg,master=self.cadreG)
@@ -119,8 +130,7 @@ class jeu():
         #Création du canvas 
         self.canvas=tk.Canvas(self.cadreG,bg='grey',height=1000,width=1700)
         self.backitem=self.canvas.create_image(800,470,image=self.backPhoto)
-        v1item=self.canvas.create_image(self.v1.x,self.v1.y,image=self.v1Photo)
-        self.v1.addItem(v1item)
+        
         
         self.canvas.pack()
         
@@ -136,7 +146,7 @@ class jeu():
         
     def setBindings(self):
         """
-        Initialisation des controls 'a','q','espace'
+        Initialisation des controls 'q','d','espace', sous forme d'un dictionnaire contenant les caractères actuellement enfoncés
         """
         for char in ["q","d"," "]:
             self.root.bind("<KeyPress-%s>" % char, self._pressed)
@@ -149,53 +159,53 @@ class jeu():
         """
         if self.pressed["q"]: self.v1.move(-15,0,self.canvas)
         if self.pressed["d"]: self.v1.move(15,0,self.canvas)
-        if self.vie>0:
+        if self.mort==0:
             self.root.after(20, self._animatemove)
         
     def _animatetire(self):
         """
-        Crée des tirs et 
+        Crée les tires du joueur si "espace" est enfoncé, et des tire ennemis aléatoirement
         """
         if self.pressed[" "]: 
             self.tiresG.append(self.creatTire(self.v1))
         
         for ennemie in self.allEnemmies.enemyListe:
             chance=r.randint(0,100)
-            if chance<=10 and ennemie.y<950 and ennemie.y>140:
+            if chance<=25 and ennemie.y<950 and ennemie.y>140:
                 self.tiresM.append(self.creatTire(ennemie))
-        if self.vie>0:
+        if self.mort==0:
             self.root.after(200, self._animatetire)
         
     def animateInterface(self):
         """
-        Fonction d'actualisation du score et de la vie à partir des variable contenant la vie et le score
+        Fonction d'actualisation du score et de la vie à partir des variable contenant la vie et le score.
+        La fonction déclanche aussi la défaite si les ennemis descendent trop bas
         """
         self.vieLabel.configure(text='Vies : '+str(self.vie))
         self.scoreLabel.configure(text='Score : '+str(self.score))
-        if self.vie>0:
+        for enemy in self.allEnemmies.enemyListe:
+            if enemy.y>870:
+                self.youDied()
+        if self.mort==0:
             self.root.after(100, self.animateInterface)
         
         
         
     def _pressed(self, event):
         """
-        Fonction qui applique True lorsque la touche est enfoncée
+        Fonction qui passe en True la valeur associée à la touche enfoncée dans le dictionaire.
         """
         self.pressed[event.char] = True
 
     def _released(self, event):
         """
-        Fonction qui applique True lorsque la touche est enfoncée
+        Fonction qui passe en False la valeur associée à la touche enfoncée dans le dictionaire.
         """
         self.pressed[event.char] = False
         
     def collision(self,entite1, entite2):
         """
-        Fonction qui gère les collisions entre:
-            - tirs allié et vaisseaux enemies
-            - tirs enemies et vaisseau allié 
-            - tirs et Ilots
-            - vaisseaux enemies et Ilots
+        Fonction qui gère les collisions entre deux entités
         """
         if self.canvas.bbox(entite1) != None and self.canvas.bbox(entite2) != None:
 
@@ -241,7 +251,7 @@ class jeu():
         
     def automove(self,vitesse,t1):
         """
-        Déplacement automatique des tirs 
+        Déplacement automatique des tirs
         """
         if t1.y>50 and t1.y<950:
             t1.move(0,vitesse,self.canvas)
@@ -251,7 +261,7 @@ class jeu():
         
     def suprTire(self,t1):
         """
-        Supprime un tir de la liste des tirs de supprime l'objet canvas
+        Supprime un tir de la liste des tirs de supprime l'objet canvas associé
         """
         if t1.camp=="G":
             self.tiresG.remove(t1)
@@ -282,7 +292,7 @@ class jeu():
                 if self.vie<1:
                     self.youDied()
             self.collisionIlotTire(tire)
-        if self.vie>0:  
+        if self.mort==0:  
             self.root.after(20, self.boom)
             
         for enemy in self.allEnemmies.enemyListe:
@@ -306,7 +316,8 @@ class jeu():
     def collisionIlotTire(self,entity2):
         """
         Actualise l'état de l'ilot ou le détruit en fonction de sa vie et supprime le tir de la liste et de son objet 
-        canvas
+        canvas. L'ilot commence à l'image Débrit3. Il a alors 4 vie. Lorsqu'il perd ses 4 vie il passe à l'image Débrit 2 et ainsi de suite
+        jusqu'a arrivé à la dernière vie de Débrit0 ou l'ilot se suprime.
         """
         for ilot in self.ilotListe:
             colli3=self.collision(ilot.item,entity2.item)
@@ -326,7 +337,8 @@ class jeu():
                
     def youDied(self):
         """
-        Lorsque la partie est perdue, affiche une écriteau marquand you died et réinitialise les variables du jeu
+        Lorsque la partie est perdue, affiche un écriteau marquand you died, réinitialise les variables du jeu, et passe self.mort à 1
+        ce qui bloque les différentes fonctions récursives.
         """
         self.newGame['state'] = 'normal'
         self.allEnemmies._stop()
@@ -336,7 +348,12 @@ class jeu():
             self.canvas.delete(ilot.item)
         self.ilotListe=[]
         self.allEnemmies.enemyListe=[]
+        self.canvas.delete(self.backitem)
+        self.backitem=self.canvas.create_image(800,470,image=self.backPhoto2)
         self.ydCreate()
+        self.canvas.delete(self.v1.item)
+        self.v1.x=850
+        self.mort=1
         
     def ydCreate(self):
         """
@@ -346,7 +363,7 @@ class jeu():
     
     def createIlot(self):
         """
-        Crée 3 objet entity à partir de l'objet canvas de l'ilot et les ajoutent à la liste
+        Crée 3 objet entity représentant les ilots à partir de l'objet canvas de l'ilot et les ajoutent à la liste
         """
         self.ilotListe=[]
         for nbIlot in range(3):
@@ -386,7 +403,7 @@ class entity():
 class Allenemy():
     """
     Objet contenant chacun des enemies apparus sur le champs de bataille ainsi que le déplacement 
-    en cours et le déplacemnt précédant
+    en cours et le déplacement précédent
     """
     def __init__(self,V2Photo):
         self.level=f.OuvrirFichier("enemy.txt")
@@ -397,20 +414,23 @@ class Allenemy():
         
     def _stop(self):
         """
-        Permet d'arréter les déplacments
+        Permet d'arréter les fonction récursives de déplacement.
         """
         self.stop=1
 
     def add(self,enemy):
+        #Ajoute un enemy à la liste des enemy
         self.enemyListe.append(enemy)
     
     def removeEnemy (self,enemy):
+        #Enlève un enemy à la liste des enemy
         self.enemyListe.remove(enemy)
     
     def move(self,canvas,root):
         """
         Effectue un déplacement globale des enemies vers la droite, le bas ou la gauche en fonction 
-        du déplacement actuel
+        du déplacement actuel. Lorsque l'ennemi le plus a droite atteint la droite lors d'un déplacement à droite,
+        tout les ennemis décendent un peu, puis se déplace à gauche et ainsi de suite.
         """
         dx=15
         if self.enemyListe ==[]:
@@ -474,7 +494,7 @@ class Allenemy():
     def spawnEnemy(self,canvas):
         """
         Fonction qui gère l'apparition des enemies de sorte à ce qu'ils apparaissent aligné avec le plus à gauche ou
-        le plus à droite
+        le plus à droite. Les emplacement des ennemis sont récupérés depuis le fichier text enemy.txt.
         """
         if self.level==[]:
             self.level=f.OuvrirFichier("enemy.txt")
