@@ -8,4 +8,3 @@ Created on Tue Dec 14 09:55:26 2021
 import Classe as cl
 
 jeu=cl.jeu()
-jeu.start()

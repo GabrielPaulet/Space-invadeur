@@ -15,13 +15,24 @@ class jeu():
         self.pressed={}
         self.tiresG=[]
         self.tiresM=[]
+        self.vie=3
+        self.score=0
         self.creatInterface()
+        self.root.mainloop()
         
     def start(self):
+        if self.vie==0:
+            self.canvas.delete(self.yditem)
+        self.newGame['state'] = 'disabled'
+        self.vie=3
+        self.score=0
+        self.allEnemmies=Allenemy(self.v2Photo)
+        self.allEnemmies.move(self.canvas,self.root)
         self._animatemove()
         self._animatetire()
+        self.animateInterface()
         self.boom()
-        self.root.mainloop()
+        
         
     def creatInterface(self):
         # Initialisation de la fenêtre et des boutons
@@ -38,12 +49,12 @@ class jeu():
         self.cadreTop.pack(side='top')
         
         # Initialisation du score et de la vie du joueur
-        self.score= tk.Label(self.cadreTop,text='Score : 1000')
-        self.score.configure(bg='black',fg='white',font=("Courier", 20))
-        self.score.pack(side='left' ,padx=300,pady=30)
-        self.vie=tk.Label(self.cadreTop, text='Vies : 3')
-        self.vie.configure(bg='black',fg='white',font=("Courier", 20))
-        self.vie.pack(side='right' ,padx=300,pady=30)
+        self.scoreLabel= tk.Label(self.cadreTop,text='Score : '+str(self.score))
+        self.scoreLabel.configure(bg='black',fg='white',font=("Courier", 20))
+        self.scoreLabel.pack(side='left' ,padx=300,pady=30)
+        self.vieLabel=tk.Label(self.cadreTop, text='Vies : '+str(self.vie))
+        self.vieLabel.configure(bg='black',fg='white',font=("Courier", 20))
+        self.vieLabel.pack(side='right' ,padx=300,pady=30)
         
         # Initialisation du canvas et des images
         backImg=Image.open("images/earth.jpeg")
@@ -71,18 +82,23 @@ class jeu():
         v1img=v1Image.resize((self.v1.lenght, self.v1.height))
         self.v1Photo=ImageTk.PhotoImage(v1img,master=self.cadreG)
         
+        #Initialisation du YD
+        ydImage=Image.open("images/YD.png")
+        ydimg=ydImage.resize((600,300))
+        self.ydPhoto=ImageTk.PhotoImage(ydimg,master=self.cadreG)
+        
         #Création du canvas 
         self.canvas=tk.Canvas(self.cadreG,bg='grey',height=1000,width=1700)
         self.backitem=self.canvas.create_image(800,470,image=self.backPhoto)
         v1item=self.canvas.create_image(self.v1.x,self.v1.y,image=self.v1Photo)
         self.v1.addItem(v1item)
-        self.allEnemmies=Allenemy(self.v2Photo)
+        
         self.canvas.pack()
-        self.allEnemmies.move(self.canvas,self.root)
+        
         self.setBindings()
         
         # Initialisation des boutons de nouvelle partie et de fin
-        self.newGame= tk.Button(self.root,text='Nouvelle Partie',command=self.root.destroy)
+        self.newGame= tk.Button(self.root,text='Nouvelle Partie',state='normal',command=self.start)
         self.newGame.configure(bg='black',fg='white',font=("Courier", 10))
         self.newGame.pack(pady=300)
         self.quitbtn= tk.Button(self.root,text='Quitter',command=self.root.destroy)
@@ -98,9 +114,8 @@ class jeu():
     def _animatemove(self):
         if self.pressed["q"]: self.v1.move(-15,0,self.canvas)
         if self.pressed["d"]: self.v1.move(15,0,self.canvas)
-        
-        
-        self.root.after(20, self._animatemove)
+        if self.vie>0:
+            self.root.after(20, self._animatemove)
         
     def _animatetire(self):
         if self.pressed["a"]: 
@@ -110,7 +125,16 @@ class jeu():
             chance=r.randint(0,100)
             if chance<=10 and ennemie.y<950 and ennemie.y>140:
                 self.tiresM.append(self.creatTire(ennemie))
-        self.root.after(200, self._animatetire)
+        if self.vie>0:
+            self.root.after(200, self._animatetire)
+        
+    def animateInterface(self):
+        self.vieLabel.configure(text='Vies : '+str(self.vie))
+        self.scoreLabel.configure(text='Score : '+str(self.score))
+        if self.vie>0:
+            self.root.after(100, self.animateInterface)
+        
+        
         
     def _pressed(self, event):
         self.pressed[event.char] = True
@@ -181,14 +205,29 @@ class jeu():
                     self.suprTire(tire)
                     self.allEnemmies.removeEnemy(enemy)
                     self.canvas.delete(enemy.item)
+                    self.score+=50
                     
         for tire in self.tiresM:
             colli2=self.collision(self.v1.item,tire.item)
             if colli2:
                 self.suprTire(tire)
-        self.root.after(20, self.boom)
-                    
-    
+                self.vie-=1
+                if self.vie<1:
+                    self.youDied()
+        if self.vie>0:  
+            self.root.after(20, self.boom)
+            
+    def youDied(self):
+        self.newGame['state'] = 'normal'
+        self.allEnemmies._stop()
+        for enemy in self.allEnemmies.enemyListe:
+            self.canvas.delete(enemy.item)
+        self.allEnemmies.enemyListe=[]
+        self.ydCreate()
+        
+    def ydCreate(self):
+        self.yditem=self.canvas.create_image(850,500,image=self.ydPhoto)
+        
 
 class vaisseau():
     
@@ -219,6 +258,10 @@ class Allenemy():
         self.enemyListe=[]
         self.deplacement=['B','D']
         self.v2Photo=V2Photo
+        self.stop=0
+        
+    def _stop(self):
+        self.stop=1
 
     def add(self,enemy):
         self.enemyListe.append(enemy)
@@ -266,7 +309,8 @@ class Allenemy():
             elif self.deplacement[0] == 'G':
                 self.deplacement[1] = 'D'
             self.deplacement[0] = 'B'
-        root.after(30, self.move,canvas,root)
+        if self.stop==0:
+            root.after(30, self.move,canvas,root)
 
     def descente(self,posyenemymax,canvas,root):
         maxy=0
@@ -279,7 +323,8 @@ class Allenemy():
             if maxy <= posyenemymax:
                 for i in range(0,len(self.enemyListe)):
                     self.enemyListe[i].move(0,15,canvas)
-                root.after(20,self.descente,posyenemymax,canvas,root)
+                if self.stop==0:
+                    root.after(20,self.descente,posyenemymax,canvas,root)
     
     def spawnEnemy(self,canvas):
         if self.level==[]:
