@@ -12,6 +12,13 @@ from PIL import Image, ImageTk
 
 class jeu():
     def __init__(self):
+        """
+        Lance l'Initialisation de:
+            - des tires alliés et enemies
+            - de l'interface du jeu
+            - d'une variable contenant la vie joueur
+            - d'une variable contenant le score
+        """
         self.pressed={}
         self.tiresG=[]
         self.tiresM=[]
@@ -21,6 +28,12 @@ class jeu():
         self.root.mainloop()
         
     def start(self):
+        """
+        Initialisation / Réinitialisation du jeu:
+            - set la vie a 3
+            - on bloque le bouton nouvelle partie
+            - on crée les enemies, les ilots, les déplacement des objets sur le canvas
+        """
         if self.vie==0:
             self.canvas.delete(self.yditem)
         self.newGame['state'] = 'disabled'
@@ -35,7 +48,15 @@ class jeu():
         self.boom()
         
     def creatInterface(self):
-        # Initialisation de la fenêtre et des boutons
+        """
+        Initialisation de l'interface avec':
+            - la fenêtre
+            - les boutons et labels
+            - le canvas
+            - chacun des objets du canvas soit lest tirs, les vaisseaux, les ilots
+            - des controls en lancant la fonction setBinding
+        """
+        # Initialisation de la fenêtre
         self.root =tk.Tk()
         self.root.geometry("1920x1080")
         self.root.title("Space invader")
@@ -114,18 +135,27 @@ class jeu():
         self.quitbtn.pack()
         
     def setBindings(self):
+        """
+        Initialisation des controls 'a','q','espace'
+        """
         for char in ["q","d"," "]:
             self.root.bind("<KeyPress-%s>" % char, self._pressed)
             self.root.bind("<KeyRelease-%s>" % char, self._released)
             self.pressed[char] = False
             
     def _animatemove(self):
+        """
+        Déplacement du joueurs si une touche est enfoncé
+        """
         if self.pressed["q"]: self.v1.move(-15,0,self.canvas)
         if self.pressed["d"]: self.v1.move(15,0,self.canvas)
         if self.vie>0:
             self.root.after(20, self._animatemove)
         
     def _animatetire(self):
+        """
+        Crée des tirs et 
+        """
         if self.pressed[" "]: 
             self.tiresG.append(self.creatTire(self.v1))
         
@@ -137,6 +167,9 @@ class jeu():
             self.root.after(200, self._animatetire)
         
     def animateInterface(self):
+        """
+        Fonction d'actualisation du score et de la vie à partir des variable contenant la vie et le score
+        """
         self.vieLabel.configure(text='Vies : '+str(self.vie))
         self.scoreLabel.configure(text='Score : '+str(self.score))
         if self.vie>0:
@@ -145,12 +178,25 @@ class jeu():
         
         
     def _pressed(self, event):
+        """
+        Fonction qui applique True lorsque la touche est enfoncée
+        """
         self.pressed[event.char] = True
 
     def _released(self, event):
+        """
+        Fonction qui applique True lorsque la touche est enfoncée
+        """
         self.pressed[event.char] = False
         
     def collision(self,entite1, entite2):
+        """
+        Fonction qui gère les collisions entre:
+            - tirs allié et vaisseaux enemies
+            - tirs enemies et vaisseau allié 
+            - tirs et Ilots
+            - vaisseaux enemies et Ilots
+        """
         if self.canvas.bbox(entite1) != None and self.canvas.bbox(entite2) != None:
 
             #On récupère les coordonées de l'objet 1
@@ -171,6 +217,9 @@ class jeu():
                 return True
         
     def creatTire(self,v):
+        """
+        Créer un objet du canvas type tir alliée ou enemie en fonction de qui tir
+        """
         if v.camp=="G":
             vitesse=-20
             t1=cl.entity(0,0,15,40,"images/piou.png",1,"G")
@@ -191,6 +240,9 @@ class jeu():
         return t1
         
     def automove(self,vitesse,t1):
+        """
+        Déplacement automatique des tirs 
+        """
         if t1.y>50 and t1.y<950:
             t1.move(0,vitesse,self.canvas)
             self.root.after(10,self.automove,vitesse,t1)
@@ -198,6 +250,9 @@ class jeu():
             self.suprTire(t1)
         
     def suprTire(self,t1):
+        """
+        Supprime un tir de la liste des tirs de supprime l'objet canvas
+        """
         if t1.camp=="G":
             self.tiresG.remove(t1)
             self.canvas.delete(t1.item)
@@ -206,6 +261,9 @@ class jeu():
             self.canvas.delete(t1.item)
     
     def boom(self):
+        """
+        Détruit un objet de sa liste et son objet canvas suite à une collision 
+        """
         for tire in self.tiresG:
             for enemy in self.allEnemmies.enemyListe:
                 colli=self.collision(enemy.item, tire.item)
@@ -246,6 +304,10 @@ class jeu():
                         ilot.vie-=1
                   
     def collisionIlotTire(self,entity2):
+        """
+        Actualise l'état de l'ilot ou le détruit en fonction de sa vie et supprime le tir de la liste et de son objet 
+        canvas
+        """
         for ilot in self.ilotListe:
             colli3=self.collision(ilot.item,entity2.item)
             if colli3:
@@ -263,6 +325,9 @@ class jeu():
                     ilot.vie-=1
                
     def youDied(self):
+        """
+        Lorsque la partie est perdue, affiche une écriteau marquand you died et réinitialise les variables du jeu
+        """
         self.newGame['state'] = 'normal'
         self.allEnemmies._stop()
         for enemy in self.allEnemmies.enemyListe:
@@ -274,9 +339,15 @@ class jeu():
         self.ydCreate()
         
     def ydCreate(self):
+        """
+        Crée l'objet canvas de l'image you died
+        """
         self.yditem=self.canvas.create_image(850,500,image=self.ydPhoto)
     
     def createIlot(self):
+        """
+        Crée 3 objet entity à partir de l'objet canvas de l'ilot et les ajoutent à la liste
+        """
         self.ilotListe=[]
         for nbIlot in range(3):
             ilot=cl.entity(250+nbIlot*600,700,150,200,self.IPhoto[3],4,"I")
@@ -288,7 +359,9 @@ class jeu():
         
 
 class entity():
-    
+    """
+    Objet définissant chacun des entité (vaisseaux, tirs, ilots)
+    """
     def __init__(self,x,y,lenght,height,image,vie,camp):
         #x et y : coordonnées , lenght et height: dimmensions de l'image , image: liens de l'image.
         self.x=x
@@ -311,6 +384,10 @@ class entity():
         self.item=item
         
 class Allenemy():
+    """
+    Objet contenant chacun des enemies apparus sur le champs de bataille ainsi que le déplacement 
+    en cours et le déplacemnt précédant
+    """
     def __init__(self,V2Photo):
         self.level=f.OuvrirFichier("enemy.txt")
         self.enemyListe=[]
@@ -319,6 +396,9 @@ class Allenemy():
         self.stop=0
         
     def _stop(self):
+        """
+        Permet d'arréter les déplacments
+        """
         self.stop=1
 
     def add(self,enemy):
@@ -328,6 +408,10 @@ class Allenemy():
         self.enemyListe.remove(enemy)
     
     def move(self,canvas,root):
+        """
+        Effectue un déplacement globale des enemies vers la droite, le bas ou la gauche en fonction 
+        du déplacement actuel
+        """
         dx=15
         if self.enemyListe ==[]:
             self.spawnEnemy(canvas)
@@ -371,6 +455,9 @@ class Allenemy():
             root.after(30, self.move,canvas,root)
 
     def descente(self,posyenemymax,canvas,root):
+        """
+        Effectue un déplacement globale des enemies vers le bas dès qu'elle est appellée
+        """
         maxy=0
         for i in range(0,len(self.enemyListe)):
             if self.enemyListe[i].y>maxy:
@@ -385,6 +472,10 @@ class Allenemy():
                     root.after(20,self.descente,posyenemymax,canvas,root)
     
     def spawnEnemy(self,canvas):
+        """
+        Fonction qui gère l'apparition des enemies de sorte à ce qu'ils apparaissent aligné avec le plus à gauche ou
+        le plus à droite
+        """
         if self.level==[]:
             self.level=f.OuvrirFichier("enemy.txt")
         if self.deplacement[0] == 'D':

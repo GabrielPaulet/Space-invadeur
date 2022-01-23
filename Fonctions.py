@@ -9,6 +9,9 @@ import tkinter as tk
 import Classe as cl
 
 def init_info():
+    """
+    Cette fonction lance la fenêtre d'instruction, lorsque le joueur appui sur le bouton commencer, le jeu est lancer
+    """
     launch = tk.Tk()
     launch.geometry("600x600")
     launch.title("Space invader Instruction")
@@ -24,12 +27,18 @@ def init_info():
     cl.jeu()
   
 def creatEnemies(x,y,v2Photo,canvas):
+    """
+    Cette fonction permet la création d'un objet sur le canvas à partir de ses coordonnées, de l'image et du canvas
+    """
     v2=cl.entity(x,y,100,70,"vaisseau2.png",1,"M")
     v2item=canvas.create_image(x,y,image=v2Photo)
     v2.addItem(v2item)
     return v2
        
 def OuvrirFichier(nom,car='/'):
+    """
+    Cette fonction ouvre un fichier text avec des caractère séparer par des '/' et en ressort un tableau
+    """
     monFichier=open(nom, encoding='utf-8')
     Fichier=monFichier.readlines()
     monFichier.close()
