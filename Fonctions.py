@@ -13,7 +13,7 @@ def init_info():
     launch.geometry("600x600")
     launch.title("Space invader Instruction")
     launch.configure(bg='black')
-    instruction="Bonjour,\n\nnous avons recréer le fameux space invaders:\n\nAider notre dernier vaisseau à affronter des\nhordes d'enemies surgissant à l'infini\nrespectant un pattern. Pour cela vous\ndisposer de tirs que vous lancez\navec la touche 'a' et de déplacements gauche\net droite avec les touches 'q' et 'd'.\n\nSi un enemie s'approche trop de vous\nvous perdrez la partie !!! De même si vous perdez\nvos trois vies.\n\nPrenez votre courages camarade\nvous partez à la guerre !"
+    instruction="Bonjour,\n\nnous avons recréer le fameux space invaders:\n\nAider notre dernier vaisseau à affronter des\nhordes d'enemies surgissant à l'infini\nrespectant un pattern. Pour cela vous\ndisposer de tirs que vous lancez\navec la touche 'espace' et de déplacements gauche\net droite avec les touches 'q' et 'd'.\n\nSi un enemie s'approche trop de vous\nvous perdrez la partie !!! De même si vous perdez\nvos trois vies.\n\nPrenez votre courages camarade\nvous partez à la guerre !"
     info= tk.Label(launch,text=instruction)
     info.configure(bg='black',fg='white',font=("Courier", 15))
     info.pack(padx=30,pady=30)
