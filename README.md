@@ -3,7 +3,7 @@ Gabriel Paulet-Duprat Victor Maschio
 
 https://github.com/GabrielPaulet/Space-invadeur
 
-Dans ce space invaders nous pouvons nous déplacer grâce à 'q' et 'd' et tirer en même temps avec la touche 'a'. Les enemies sont créer à partir d'un fichier de niveau et 
+Dans ce space invaders nous pouvons nous déplacer grâce à 'q' et 'd' et tirer en même temps avec la touche 'espace'. Les enemies sont créer à partir d'un fichier de niveau et 
 apparaisent à l'infini. Ceux-ci tirent aléatoirement à intervale régulier mais le joueur est protégé par des astéroïdes. Si un enemie descend trop bas le joueur perd la partie, de même si ses vies tombent
 à zéro. Le score s'incrémente de 50 à chaque enemie tué.
 
