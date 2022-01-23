@@ -7,51 +7,28 @@ Created on Tue Dec 14 10:20:49 2021
 """
 import tkinter as tk
 import Classe as cl
-from PIL import Image, ImageTk
 
 def init_info():
     launch = tk.Tk()
-    launch.geometry("600x800")
+    launch.geometry("600x600")
     launch.title("Space invader Instruction")
     launch.configure(bg='black')
-    instruction='Bonjour, nous avons recréer le fameux space invaders\n mais à notre sauce vous pourrez :'
+    instruction="Bonjour,\n\nnous avons recréer le fameux space invaders:\n\nAider notre dernier vaisseau à affronter des\nhordes d'enemies surgissant à l'infini\nrespectant un pattern. Pour cela vous\ndisposer de tirs que vous lancez\navec la touche 'a' et de déplacements gauche\net droite avec les touches 'q' et 'd'.\n\nSi un enemie s'approche trop de vous\nvous perdrez la partie !!! De même si vous perdez\nvos trois vies.\n\nPrenez votre courages camarade\nvous partez à la guerre !"
     info= tk.Label(launch,text=instruction)
-    info.configure(bg='black',fg='white',font=("Courier", 10))
+    info.configure(bg='black',fg='white',font=("Courier", 15))
     info.pack(padx=30,pady=30)
     begin= tk.Button(launch,text='Commencer',command=launch.destroy)
-    begin.configure(bg='black',fg='white',font=("Courier", 10))
-    begin.pack()
+    begin.configure(bg='black',fg='white',font=("Courier", 15))
+    begin.pack(pady=40)
     launch.mainloop()
-    jeu=cl.jeu()
-
-
-def creatTire(v1,t1Photo,canvas,window,vitesse):
-    if vitesse<0:
-        posy=-60
-    else:
-        posy=60
-    if v1.camp=="G":
-        t1=cl.vaisseau(0,0,15,40,"images/piou.png",1,"T")
-    else:
-        t1=cl.vaisseau(0,0,15,40,"images/piou2.png",1,"T")
-    t1.x=v1.x
-    t1.y=v1.y +posy
-    t1item=canvas.create_image(t1.x,t1.y,image=t1Photo)
-    t1.addItem(t1item)
-    automove(t1,t1item,canvas,window,vitesse)
-    
+    cl.jeu()
+  
 def creatEnemies(x,y,v2Photo,canvas):
-    v2=cl.vaisseau(x,y,100,70,"vaisseau2.png",1,"M")
+    v2=cl.entity(x,y,100,70,"vaisseau2.png",1,"M")
     v2item=canvas.create_image(x,y,image=v2Photo)
     v2.addItem(v2item)
     return v2
-    
-def automove(t1,t1item,canvas,window,vitesse):
-    if t1.y>50 and t1.y<950:
-        t1.move(0,vitesse,canvas)
-        window.after(10,automove,t1,t1item,canvas,window,vitesse)
-    else: canvas.delete(t1item)
-    
+       
 def OuvrirFichier(nom,car='/'):
     monFichier=open(nom, encoding='utf-8')
     Fichier=monFichier.readlines()

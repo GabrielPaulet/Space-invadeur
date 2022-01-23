@@ -28,11 +28,11 @@ class jeu():
         self.score=0
         self.allEnemmies=Allenemy(self.v2Photo)
         self.allEnemmies.move(self.canvas,self.root)
+        self.createIlot()
         self._animatemove()
         self._animatetire()
         self.animateInterface()
         self.boom()
-        
         
     def creatInterface(self):
         # Initialisation de la fenêtre et des boutons
@@ -77,10 +77,18 @@ class jeu():
         self.v2Photo=ImageTk.PhotoImage(v2img,master=self.cadreG)
         
         #initialisation du vaisseau
-        self.v1=cl.vaisseau(850,940,100,70,"images/vaisseau1.png",3,'G')
+        self.v1=cl.entity(850,940,100,70,"images/vaisseau1.png",3,'G')
         v1Image=Image.open(self.v1.image)
         v1img=v1Image.resize((self.v1.lenght, self.v1.height))
         self.v1Photo=ImageTk.PhotoImage(v1img,master=self.cadreG)
+        
+        #Initialisation des Ilots
+        self.IPhoto=[]
+        for nb in [0,1,2,3]:
+            nbString=str(nb)
+            I1Image=Image.open("images/Débris%s.png" % nbString)
+            I1img=I1Image.resize((150, 200))
+            self.IPhoto.append(ImageTk.PhotoImage(I1img,master=self.cadreG))
         
         #Initialisation du YD
         ydImage=Image.open("images/YD.png")
@@ -106,7 +114,7 @@ class jeu():
         self.quitbtn.pack()
         
     def setBindings(self):
-        for char in ["q","d","a"]:
+        for char in ["q","d"," "]:
             self.root.bind("<KeyPress-%s>" % char, self._pressed)
             self.root.bind("<KeyRelease-%s>" % char, self._released)
             self.pressed[char] = False
@@ -118,7 +126,7 @@ class jeu():
             self.root.after(20, self._animatemove)
         
     def _animatetire(self):
-        if self.pressed["a"]: 
+        if self.pressed[" "]: 
             self.tiresG.append(self.creatTire(self.v1))
         
         for ennemie in self.allEnemmies.enemyListe:
@@ -165,11 +173,11 @@ class jeu():
     def creatTire(self,v):
         if v.camp=="G":
             vitesse=-20
-            t1=cl.vaisseau(0,0,15,40,"images/piou.png",1,"G")
+            t1=cl.entity(0,0,15,40,"images/piou.png",1,"G")
             imagePiou=self.t1Photo
         else:
             vitesse=20
-            t1=cl.vaisseau(0,0,15,40,"images/piou2.png",1,"M")
+            t1=cl.entity(0,0,15,40,"images/piou2.png",1,"M")
             imagePiou=self.t2Photo
         if vitesse<0:
             posy=-60
@@ -206,7 +214,8 @@ class jeu():
                     self.allEnemmies.removeEnemy(enemy)
                     self.canvas.delete(enemy.item)
                     self.score+=50
-                    
+                self.collisionIlotTire(tire)
+            
         for tire in self.tiresM:
             colli2=self.collision(self.v1.item,tire.item)
             if colli2:
@@ -214,22 +223,71 @@ class jeu():
                 self.vie-=1
                 if self.vie<1:
                     self.youDied()
+            self.collisionIlotTire(tire)
         if self.vie>0:  
             self.root.after(20, self.boom)
             
+        for enemy in self.allEnemmies.enemyListe:
+            for ilot in self.ilotListe:
+                colli3=self.collision(ilot.item,enemy.item)
+                if colli3:
+                    self.allEnemmies.removeEnemy(enemy)
+                    self.canvas.delete(enemy.item)
+                    if ilot.vie<2:
+                        self.canvas.delete(ilot.item)
+                        nbImage=self.IPhoto.index(ilot.image)
+                        if nbImage>0:
+                            nbImage-=1
+                            ilot.image=self.IPhoto[nbImage]
+                            ilotItem = self.canvas.create_image(ilot.x,ilot.y,image=ilot.image)
+                            ilot.addItem(ilotItem)
+                            ilot.vie=4
+                    else:
+                        ilot.vie-=1
+                  
+    def collisionIlotTire(self,entity2):
+        for ilot in self.ilotListe:
+            colli3=self.collision(ilot.item,entity2.item)
+            if colli3:
+                self.suprTire(entity2)
+                if ilot.vie<2:
+                    self.canvas.delete(ilot.item)
+                    nbImage=self.IPhoto.index(ilot.image)
+                    if nbImage>0:
+                        nbImage-=1
+                        ilot.image=self.IPhoto[nbImage]
+                        ilotItem = self.canvas.create_image(ilot.x,ilot.y,image=ilot.image)
+                        ilot.addItem(ilotItem)
+                        ilot.vie=4
+                else:
+                    ilot.vie-=1
+               
     def youDied(self):
         self.newGame['state'] = 'normal'
         self.allEnemmies._stop()
         for enemy in self.allEnemmies.enemyListe:
             self.canvas.delete(enemy.item)
+        for ilot in self.ilotListe:
+            self.canvas.delete(ilot.item)
+        self.ilotListe=[]
         self.allEnemmies.enemyListe=[]
         self.ydCreate()
         
     def ydCreate(self):
         self.yditem=self.canvas.create_image(850,500,image=self.ydPhoto)
+    
+    def createIlot(self):
+        self.ilotListe=[]
+        for nbIlot in range(3):
+            ilot=cl.entity(250+nbIlot*600,700,150,200,self.IPhoto[3],4,"I")
+            ilotItem = self.canvas.create_image(ilot.x,ilot.y,image=ilot.image)
+            ilot.addItem(ilotItem)
+            self.ilotListe.append(ilot)
+            
+        
         
 
-class vaisseau():
+class entity():
     
     def __init__(self,x,y,lenght,height,image,vie,camp):
         #x et y : coordonnées , lenght et height: dimmensions de l'image , image: liens de l'image.
